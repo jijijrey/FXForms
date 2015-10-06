@@ -54,6 +54,7 @@ UIKIT_EXTERN NSString *const FXFormFieldHeader; //header
 UIKIT_EXTERN NSString *const FXFormFieldFooter; //footer
 UIKIT_EXTERN NSString *const FXFormFieldInline; //inline
 UIKIT_EXTERN NSString *const FXFormFieldSortable; //sortable
+UIKIT_EXTERN NSString *const FXFormFieldPopover; //popover
 UIKIT_EXTERN NSString *const FXFormFieldViewController; //viewController
 
 UIKIT_EXTERN NSString *const FXFormFieldTypeDefault; //default
@@ -144,6 +145,7 @@ UIKIT_EXTERN NSString *const FXFormFieldTypeImage; //image
 @property (nonatomic, strong) FXFormController *parentFormController;
 @property (nonatomic, weak) id<FXFormControllerDelegate> delegate;
 @property (nonatomic, strong) id<FXForm> form;
+@property (nonatomic, strong) UIPopoverController *popoverController;
 
 - (NSUInteger)numberOfSections;
 - (NSUInteger)numberOfFieldsInSection:(NSUInteger)section;

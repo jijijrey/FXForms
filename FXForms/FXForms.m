@@ -63,6 +63,7 @@ NSString *const FXFormFieldHeader = @"header";
 NSString *const FXFormFieldFooter = @"footer";
 NSString *const FXFormFieldInline = @"inline";
 NSString *const FXFormFieldSortable = @"sortable";
+NSString *const FXFormFieldPopover = @"popover";
 NSString *const FXFormFieldViewController = @"viewController";
 
 NSString *const FXFormFieldTypeDefault = @"default";
@@ -632,7 +633,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 
 
 
-@interface FXFormController () <UITableViewDataSource, UITableViewDelegate>
+@interface FXFormController () <UITableViewDataSource, UITableViewDelegate, UIPopoverControllerDelegate>
 
 @property (nonatomic, copy) NSArray *sections;
 @property (nonatomic, strong) NSMutableDictionary *cellHeightCache;
@@ -658,6 +659,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 @property (nonatomic, readwrite) NSDictionary *fieldTemplate;
 @property (nonatomic, readwrite) BOOL isSortable;
 @property (nonatomic, readwrite) BOOL isInline;
+@property (nonatomic, readwrite) BOOL isPopover;
 @property (nonatomic, readonly) id (^valueTransformer)(id input);
 @property (nonatomic, readonly) id (^reverseValueTransformer)(id input);
 @property (nonatomic, strong) id defaultValue;
@@ -682,6 +684,8 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 @property (nonatomic, strong) id footer;
 @property (nonatomic, strong) NSMutableArray *fields;
 @property (nonatomic, assign) BOOL isSortable;
+@property (nonatomic, assign) BOOL isInline;
+@property (nonatomic, assign) BOOL isPopover;
 
 - (void)addNewField;
 
@@ -1127,6 +1131,11 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 - (void)setInline:(BOOL)isInline
 {
     _isInline = isInline;
+}
+
+- (void)setIsPopover:(BOOL)isPopover
+{
+    _isPopover = isPopover;
 }
 
 - (void)setOptions:(NSArray *)options
@@ -2438,6 +2447,14 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     }
 }
 
+- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
+{
+    NSIndexPath *selected = [self.tableView indexPathForSelectedRow];
+    [self.tableView reloadData];
+    [self.tableView selectRowAtIndexPath:selected animated:NO scrollPosition:UITableViewScrollPositionNone];
+    [self.tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
+}
+
 @end
 
 
@@ -2678,6 +2695,77 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 - (void)didSelectWithTableView:(__unused UITableView *)tableView controller:(__unused UIViewController *)controller
 {
     //override
+    if (self.field.action)
+    {
+        [FXFormsFirstResponder(tableView) resignFirstResponder];
+        if (self.field.action) self.field.action(self);
+        [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
+    }
+    else if ([self.field.type isEqualToString:FXFormFieldTypeBoolean] || [self.field.type isEqualToString:FXFormFieldTypeOption])
+    {
+        self.field.value = @(![self.field.value boolValue]);
+        self.accessoryType = [self.field.value boolValue]? UITableViewCellAccessoryCheckmark: UITableViewCellAccessoryNone;
+        if ([self.field.type isEqualToString:FXFormFieldTypeOption])
+        {
+            NSIndexPath *indexPath = [tableView indexPathForCell:self];
+            if (indexPath)
+            {
+                //reload entire section, in case fields are linked
+                [tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
+            }
+        }
+        else
+        {
+            //deselect the cell
+            [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
+        }
+    }
+    else if ([self.field isSubform])
+    {
+        [FXFormsFirstResponder(tableView) resignFirstResponder];
+        UIViewController *subcontroller = nil;
+        if ([self.field.valueClass isSubclassOfClass:[UIViewController class]])
+        {
+            subcontroller = self.field.value;
+        }
+        else
+        {
+            subcontroller = [[self.field.viewController ?: [FXFormViewController class] alloc] init];
+            ((id <FXFormFieldViewController>)subcontroller).field = self.field;
+        }
+        if (!subcontroller.title) subcontroller.title = self.field.title;
+        
+        // display options in a popovercontroller
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && [self.field isPopover])
+        {
+            self.field.formController.popoverController = [[UIPopoverController alloc] initWithContentViewController:subcontroller];
+            
+            int xpos = self.bounds.size.width/2;
+            CGPoint viewPoint = self.bounds.origin;
+            int tableHeight = (self.field.options.count+1) * self.bounds.size.height;
+            CGSize defaultSize = self.field.formController.popoverController.popoverContentSize;
+            
+            int povHeight = defaultSize.height;
+            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionAny;
+            CGRect rect = self.bounds;
+            
+            if (defaultSize.height > tableHeight)
+            {
+                povHeight = tableHeight;
+                rect = CGRectMake(xpos, viewPoint.y, defaultSize.width, povHeight);
+                arrow = UIPopoverArrowDirectionAny;
+            }
+            
+            self.field.formController.popoverController.delegate = self.field.formController;
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
+            [self.field.formController.popoverController presentPopoverFromRect:rect
+                                                                         inView:self
+                                                       permittedArrowDirections:arrow
+                                                                       animated:YES];
+        }
+        // navigate to options selection viewcontroller
+        else [controller.navigationController pushViewController:subcontroller animated:YES];
+    }
 }
 
 @end
@@ -2794,6 +2882,34 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             UIStoryboardSegue *segue = [[self.field.segue alloc] initWithIdentifier:self.field.key source:controller destination:subcontroller];
             [controller prepareForSegue:self.field.segue sender:self];
             [segue perform];
+        }
+        // display options in a popovercontroller
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && [self.field isPopover])
+        {
+            self.field.formController.popoverController = [[UIPopoverController alloc] initWithContentViewController:subcontroller];
+            
+            int xpos = self.bounds.size.width/2;
+            CGPoint viewPoint = self.bounds.origin;
+            int tableHeight = (self.field.options.count+1) * self.bounds.size.height;
+            CGSize defaultSize = self.field.formController.popoverController.popoverContentSize;
+            
+            int povHeight = defaultSize.height;
+            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionAny;
+            CGRect rect = self.bounds;
+            
+            if (defaultSize.height > tableHeight)
+            {
+                povHeight = tableHeight;
+                rect = CGRectMake(xpos, viewPoint.y, defaultSize.width, povHeight);
+                arrow = UIPopoverArrowDirectionAny;
+            }
+            
+            self.field.formController.popoverController.delegate = self.field.formController;
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
+            [self.field.formController.popoverController presentPopoverFromRect:rect
+                                                                         inView:self
+                                                       permittedArrowDirections:arrow
+                                                                       animated:YES];
         }
         else
         {
