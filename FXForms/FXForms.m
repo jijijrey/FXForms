@@ -2894,7 +2894,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             CGSize defaultSize = self.field.formController.popoverController.popoverContentSize;
             
             int povHeight = defaultSize.height;
-            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionAny;
+            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionUp;
             CGRect rect = self.bounds;
             
             if (defaultSize.height > tableHeight)
