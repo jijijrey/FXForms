@@ -2522,7 +2522,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     if (!self.tableView)
     {
         self.tableView = [[UITableView alloc] initWithFrame:[UIScreen mainScreen].applicationFrame
-                                                      style:UITableViewStyleGrouped];
+                                                      style:UITableViewStylePlain];
     }
     if (!self.tableView.superview)
     {
@@ -2746,7 +2746,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             CGSize defaultSize = self.field.formController.popoverController.popoverContentSize;
             
             int povHeight = defaultSize.height;
-            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionUp;
+            UIPopoverArrowDirection arrow = UIPopoverArrowDirectionAny;
             CGRect rect = self.bounds;
             
             if (defaultSize.height > tableHeight)
@@ -2757,7 +2757,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             }
             
             self.field.formController.popoverController.delegate = self.field.formController;
-            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(320.0, 250.0)];
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
             [self.field.formController.popoverController presentPopoverFromRect:rect
                                                                          inView:self
                                                        permittedArrowDirections:arrow
@@ -2905,7 +2905,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             }
             
             self.field.formController.popoverController.delegate = self.field.formController;
-            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(320.0, 250.0)];
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
             [self.field.formController.popoverController presentPopoverFromRect:rect
                                                                          inView:self
                                                        permittedArrowDirections:arrow
