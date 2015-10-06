@@ -2757,7 +2757,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             }
             
             self.field.formController.popoverController.delegate = self.field.formController;
-            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(320.0, 250.0);];
             [self.field.formController.popoverController presentPopoverFromRect:rect
                                                                          inView:self
                                                        permittedArrowDirections:arrow
@@ -2905,7 +2905,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
             }
             
             self.field.formController.popoverController.delegate = self.field.formController;
-            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(defaultSize.width, povHeight)];
+            [self.field.formController.popoverController setPopoverContentSize:CGSizeMake(320.0, 250.0);];
             [self.field.formController.popoverController presentPopoverFromRect:rect
                                                                          inView:self
                                                        permittedArrowDirections:arrow
