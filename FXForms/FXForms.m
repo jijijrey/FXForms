@@ -2762,6 +2762,10 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
                                                                          inView:self
                                                        permittedArrowDirections:arrow
                                                                        animated:YES];
+            
+            
+            //deselect the cell
+            [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
         }
         // navigate to options selection viewcontroller
         else [controller.navigationController pushViewController:subcontroller animated:YES];
@@ -2910,6 +2914,10 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
                                                                          inView:self
                                                        permittedArrowDirections:arrow
                                                                        animated:YES];
+            
+            
+            //deselect the cell
+            [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
         }
         else
         {
