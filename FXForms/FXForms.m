@@ -2764,11 +2764,14 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
                                                                        animated:YES];
             
             
-            //deselect the cell
-            [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
         }
         // navigate to options selection viewcontroller
-        else [controller.navigationController pushViewController:subcontroller animated:YES];
+        else {
+            [controller.navigationController pushViewController:subcontroller animated:YES];
+        }
+        
+        //deselect the cell
+        [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
     }
 }
 
@@ -2916,14 +2919,15 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
                                                                        animated:YES];
             
             
-            //deselect the cell
-            [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
         }
         else
         {
             NSAssert(controller.navigationController != nil, @"Attempted to push a sub-viewController from a form that is not embedded inside a UINavigationController. That won't work!");
             [controller.navigationController pushViewController:subcontroller animated:YES];
         }
+        
+        //deselect the cell
+        [tableView selectRowAtIndexPath:nil animated:YES scrollPosition:UITableViewScrollPositionNone];
     }
 }
 
